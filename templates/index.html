@@ -1,0 +1,51 @@
+<!--from flask import Flask, render_template-->
+
+<!--<!DOCTYPE html>-->
+<!--<link rel="stylesheet" type="text/css" href="css/style.css">-->
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Jimsay Private Chat!</title>
+</head>
+
+<body style="f; padding-left: 80px;" bgcolor= "#93bcff" >
+    <h2>Welcome to Jimsay Private Chat!</h2>
+    <form action="/get_message" method="POST" enctype = "multipart/form-data">
+        <p>Send to:</p>
+        <select name="chooseRecipient">
+            <option name="Jimmy"   value="Jimmy"  >Jimmy</option>
+            <option name="Lindsay" value="Lindsay">Lindsay</option>
+        </select>
+        <br><br>
+        <input type="text" id="MessageBox" name ="MessageBox" style="height:150px" size="50">
+        <p>Or upload an image:</p>
+        <input type="file" id="MessageImage" name="MessageImage">
+        <br><br>
+        <input type="submit" id="Send" name="Send" value="Send">
+    </form>
+
+    <div style="border-style: solid; width: 500px">
+    <ul>
+      <li>{{ firstMessage }}</li>
+  {% for message in messages %}
+      <li>{{ message }} </li>
+  {% endfor %}
+    </ul>
+    </div>
+</body>
+</html>
+<!--
+<script src="~/lib/jquery/dist/jquery.js" type="text/javascript"></script>
+<script type="text/javascript">
+    function Send(){}
+    function CheckRadio()
+    {
+        if(('#SendToLindsay').val() == true)
+            ('#SendToJimmy').val() == false);
+        console.log(('#SendToLindsay').val());
+        if(('#SendToJimmy').val() == true)
+            ('#SendToLindsay').val() == false);
+    };
+<-->

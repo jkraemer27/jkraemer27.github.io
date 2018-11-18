@@ -1,0 +1,139 @@
+\documentclass[a4paper, 10pt]{article}
+\usepackage[a4paper, total={6.5in, 8in}]{geometry}
+\usepackage[]{algorithm2e}
+
+\title{Jimsay Private Chat}
+\author{James Kraemer\\ Jacob Collins}
+\date{}
+
+
+\begin{document}
+
+\begin{titlepage}
+\maketitle
+\tableofcontents
+\end{titlepage}
+
+
+\section{Introduction}
+This specification describes a highly specialized protocol for communication between two individuals, James Kraemer, and his wife Lindsay Kraemer. The system consists of a central server and two types of clients.
+\\\\
+The first type of client is the web client. The web client opens the server's hosted website via a web browser. The second type of client connects to the server via a TCP connection.
+\\\\
+The web client can send simple text messages, or files with a specified recipient to the server. The server then routes the payload to the client.
+
+\section{Basic Information}
+There are two ways to communicate to the server. The first is via HTTP. The server hosts a website that can be accessed via a web browser. The second communication interface is via a TCP/IP connection. The server listens for client connection on port 27272. Only TCP clients in the server's white-list are granted a connection, and a socket stream is opened.
+
+\section{Message Processing}
+There are a few requirements for this protocol. Since the packets are sent as JSON objects, the length can vary, and the length is not included in the details. Instead, packets must be encoded by the sender before going over the wire, and incoming packets must be decoded.
+
+	\subsection{CRC}
+
+	\subsection{Encoding}
+	The encoding algorithm must be performed on each message being sent. This is to ensure that each message is captured between the necessary encapsulating bytes (0x7E). The following algorithm describes message encoding that must be performed by the sender:
+		\begin{algorithm}
+		data = []\\
+		data.append(0x7E)\\
+		\For{each byte in packet} 
+			{
+			\eIf{x} 
+				{data.append(0x7D)\\data.append(byte XOR 0x20)}
+				{data.append(byte)}
+			}
+		data.append(0x7E)\\
+		\Return data
+		\end{algorithm}
+
+	\subsection{Decoding}
+	The decoding algorithm can be done each time the socket receives any amount of packets. A data structure containing 1 or more decoded packets is the intended output. The following algorithm describes message decoding that must be performed by the receiver:
+	\begin{algorithm}
+	dataArray = []\\
+	data = []\\
+	i = 0\\
+	\While{i < len(packet)}
+		{
+		byte = packet[i]\\
+		\uIf{byte == 0x7E AND NOT data.empty()}
+			{
+			dataArray.append(data)\\
+			data = []
+			}
+		\uElseIf{byte == 0x7D}
+			{
+			i += 1
+			byte = packet[i]\\
+			data.append(byte XOR 0x20)
+			}
+		\uElse
+			{
+			data.append(byte)
+			}
+		i += 1
+		}
+	\Return dataArray
+	\end{algorithm}
+	
+\section{Message Infrastructure}
+	\subsection{Generic Message Format}
+	\{ 'opcode': $<opcode>$, 'payload': $<payload>$ \}
+	
+	\subsubsection{Operation Codes}
+	0: JPC\_HELLO\\
+	1: JPC\_CLOSE\\
+	2: JPC\_HEARTBEAT\\
+	3: JPC\_ERROR\\
+	4: JPC\_SEND\\
+	5: JPC\_TELL\\
+	
+\section{Messages}
+	\subsection{Hello}
+	\{ 'opcode': 0, 'payload': $<MAC Address>$ \}
+		\subsubsection{Usage}
+		The JPC\_HELLO packet is sent from a TCP client to the server. The TCP client includes their MAC address as an integer for the payload. The server then checks this MAC address against it's white-list, and accepts the connection accordingly.
+		
+	\subsection{Close}
+	\{ 'opcode': 1, 'payload': NULL \}
+		\subsubsection{Usage}
+		The JPC\_CLOSE packet can be sent from server to TCP client, or TCP client to server to indicate that the connection will be closed. The sender and receiver are then expected to close their connections.
+	
+	\subsection{Heartbeat}
+	\{ 'opcode': 2, 'payload': NULL \}
+		\subsubsection{Usage}
+		The JPC\_HEARTBEAT packet must be sent from server to TCP and vice versa. This packet must be sent atleast once every five seconds. If a five second period elapses without a connection heartbeat, the connection must be closed.
+	
+	\subsection{Error}
+	\{ 'opcode': 3, 'payload': $<error\ code>$ \}
+	
+		\subsubsection{Usage}
+		The JPC\_ERROR packet can be sent from server to TCP client, or TCP client to server to indicate some kind of error.
+		\subsubsection{Error Codes}
+		0:\\
+		1: ERROR\_TIMED\_OUT\\
+		
+	\subsection{Send}
+	\{ 'opcode': 4, 'payload': $<message>$ \}
+		\subsubsection{Usage}
+		The JPC\_SEND packet is received via the server's hosted site when the HTTP client presses send.
+		\subsubsection{Message}
+		\{ 'recipient': $<recipient\ name>$, 'type': $<message\ type>$, 'message': $<message>$ \}
+		\subsubsection{Message Types}
+		0: Plain Text\\
+		1: Image\\
+		
+	\subsection{Tell}
+	\{ 'opcode': 5, 'payload': $<message>$ \}
+		\subsubsection{Usage}
+		The JPC\_TELL packet is sent from the server to the appropriate TCP client.
+		\subsubsection{Message}
+		\{ 'type': $<message\ type>$, 'message': $<message>$ \}
+		\subsubsection{Message Types}
+		0: Plain Text\\
+		1: Image\\
+
+\section{Error Handling}
+
+\section{Conclusion}
+
+
+\end{document}
